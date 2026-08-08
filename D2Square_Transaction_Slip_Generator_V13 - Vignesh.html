@@ -1,0 +1,1210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>D2Square Transaction Slip Generator</title>
+
+<style>
+
+:root{
+--primary:#0f4c81;
+--success:#0f9d58;
+--danger:#dc3545;
+--secondary:#64748b;
+--bg:#f4f7fb;
+--border:#d9e2ec;
+}
+
+*{
+box-sizing:border-box;
+margin:0;
+padding:0;
+}
+
+body{
+font-family:Arial,sans-serif;
+background:var(--bg);
+padding:15px;
+color:#1f2937;
+}
+
+.container{
+max-width:1200px;
+margin:auto;
+}
+
+.card{
+background:#fff;
+border-radius:16px;
+padding:18px;
+margin-bottom:15px;
+box-shadow:0 4px 20px rgba(0,0,0,.08);
+}
+
+h1{
+text-align:center;
+margin-bottom:10px;
+color:var(--primary);
+}
+
+.subtitle{
+text-align:center;
+margin-bottom:20px;
+color:#666;
+}
+
+label{
+font-weight:600;
+display:block;
+margin-bottom:5px;
+}
+
+.required{
+color:red;
+}
+
+input,
+select{
+width:100%;
+padding:10px;
+border:1px solid #cbd5e1;
+border-radius:8px;
+font-size:14px;
+}
+
+.error{
+border:2px solid red !important;
+}
+
+input:focus,
+select:focus{
+outline:none;
+border-color:var(--primary);
+}
+
+.table-wrap{
+overflow:auto;
+}
+
+table{
+width:100%;
+border-collapse:collapse;
+}
+
+th,td{
+border:1px solid var(--border);
+padding:8px;
+text-align:left;
+}
+
+th{
+background:#f1f5f9;
+}
+
+.btn{
+border:none;
+padding:12px 14px;
+border-radius:10px;
+cursor:pointer;
+color:#fff;
+font-weight:600;
+}
+
+.btn-primary{
+background:var(--primary);
+}
+
+.btn-success{
+background:var(--success);
+}
+
+.btn-danger{
+background:var(--danger);
+}
+
+.btn-secondary{
+background:var(--secondary);
+}
+
+.button-group{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(170px,1fr));
+gap:10px;
+margin-top:15px;
+}
+
+.summary{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+gap:10px;
+margin-top:15px;
+}
+
+.summary-box{
+background:#f8fafc;
+padding:12px;
+border-radius:10px;
+text-align:center;
+}
+
+.summary-box div{
+font-size:18px;
+font-weight:bold;
+margin-top:5px;
+}
+
+.output{
+background:#111827;
+color:white;
+padding:15px;
+border-radius:12px;
+min-height:250px;
+white-space:pre-wrap;
+font-family:Consolas,monospace;
+}
+
+.delete-btn{
+background:var(--danger);
+color:white;
+border:none;
+padding:8px 10px;
+border-radius:8px;
+cursor:pointer;
+}
+
+.tooltip{
+position:relative;
+display:inline-block;
+cursor:pointer;
+color:var(--primary);
+margin-left:5px;
+}
+
+.tooltip .tooltiptext{
+visibility:hidden;
+width:220px;
+background:#333;
+color:#fff;
+padding:8px;
+border-radius:6px;
+position:absolute;
+z-index:99;
+top:22px;
+left:0;
+font-size:12px;
+}
+
+.tooltip:hover .tooltiptext{
+visibility:visible;
+}
+
+.mobile-card{
+display:none;
+}
+
+.tab-bar{
+display:flex;
+gap:10px;
+margin-bottom:18px;
+}
+
+.tab-btn{
+flex:1;
+border:none;
+padding:12px 10px;
+border-radius:10px;
+cursor:pointer;
+font-weight:600;
+background:#eef2f7;
+color:var(--secondary);
+}
+
+.tab-btn.active{
+background:var(--primary);
+color:#fff;
+}
+
+#saveStatus{
+margin-top:10px;
+font-size:13px;
+font-weight:600;
+}
+
+.status-ok{color:var(--success);}
+.status-warn{color:#b45309;}
+.status-err{color:var(--danger);}
+
+.dashboard-controls{
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:10px;
+margin-bottom:15px;
+}
+
+@media(max-width:768px){
+
+table{
+display:none;
+}
+
+.mobile-card{
+display:block;
+background:#fff;
+border:1px solid #ddd;
+padding:12px;
+border-radius:12px;
+margin-bottom:12px;
+}
+
+.mobile-card label{
+margin-top:8px;
+}
+
+.summary{
+position:sticky;
+bottom:0;
+background:white;
+padding:10px;
+z-index:99;
+box-shadow:0 -2px 10px rgba(0,0,0,.1);
+}
+
+.btn{
+width:100%;
+min-height:48px;
+}
+
+input,
+select{
+min-height:48px;
+font-size:16px;
+}
+
+.output{
+font-size:13px;
+}
+
+.dashboard-controls{
+grid-template-columns:1fr;
+}
+
+#dashboardTable{
+display:table;
+}
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<div class="card">
+
+<h1>D2Square Transaction Slip Generator</h1>
+<div class="subtitle">Settlement Slip Creator</div>
+
+<div class="tab-bar">
+<button class="tab-btn active" id="tabCreateBtn" onclick="showTab('create')">Create Slip</button>
+<button class="tab-btn" id="tabDashboardBtn" onclick="showTab('dashboard')">Dashboard</button>
+</div>
+
+<div id="createTab">
+
+<div style="margin-bottom:15px;">
+<label>
+Customer Name <span class="required">*</span>
+<span class="tooltip">❓
+<span class="tooltiptext">
+Enter Customer / Beneficiary Name
+</span>
+</span>
+</label>
+
+<input
+type="text"
+id="customerName"
+placeholder="Customer Name">
+
+<div style="margin-top:12px;">
+<label>Customer Mobile <span class="required">*</span></label>
+<input type="tel" id="customerMobile" maxlength="10" placeholder="10-digit Mobile Number" inputmode="numeric">
+<div id="customerLookupNote" style="font-size:12px;margin-top:4px;color:var(--secondary);"></div>
+</div>
+
+</div>
+
+<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:15px;">
+<div>
+<label>No. of Lines</label>
+<select id="lineCount">
+<option value="1">1</option>
+<option value="2">2</option>
+<option value="5">5</option>
+<option value="10">10</option>
+<option value="20">20</option>
+</select>
+</div>
+
+<div style="align-self:end;">
+<button class="btn btn-primary" onclick="addMultipleRows()">
++ Add Selected Lines
+</button>
+</div>
+</div>
+
+<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px;">
+<span id="configStatus" style="font-size:12px;color:var(--secondary);">Using built-in portal/charge list.</span>
+<button type="button" class="btn btn-secondary" style="padding:6px 12px;width:auto;min-height:auto;" onclick="loadConfigFromSheet()">⟳ Refresh Portals/Charges</button>
+</div>
+
+<div class="table-wrap">
+
+<table>
+<thead>
+<tr>
+<th>Amount *</th>
+<th>Charges %</th>
+<th>Cost %</th>
+<th>Txn ID *</th>
+<th>Portal *</th>
+<th>Action</th>
+</tr>
+</thead>
+<tbody id="transactionBody"></tbody>
+</table>
+
+<div id="mobileContainer"></div>
+
+</div>
+
+<div style="margin-top:15px;">
+<label>
+Settlement Adjustment
+<span class="tooltip">❓
+<span class="tooltiptext">
+Amount deducted from settlement
+</span>
+</span>
+</label>
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+<select id="adjustmentType">
+<option value="bank">Bank Transfer Charges</option>
+<option value="advance">Advance Bill Payment Charges</option>
+<option value="discount">Discount</option>
+</select>
+<input type="text" id="bankTransfer" inputmode="numeric" placeholder="Amount">
+</div>
+</div>
+
+<div class="summary">
+
+<div class="summary-box">
+Total Transaction
+<div id="totalTxn">0</div>
+</div>
+
+<div class="summary-box">
+Total Charges
+<div id="totalSC">0</div>
+</div>
+
+<div class="summary-box">
+Total Settlement
+<div id="totalSettlement">0</div>
+</div>
+
+<div class="summary-box">
+Final Settlement
+<div id="finalSettlement">0</div>
+</div>
+
+</div>
+
+<div style="margin-top:12px;font-size:12px;color:var(--secondary);font-weight:600;">
+Internal margin analysis — not shown on the slip or shared with the customer
+</div>
+
+<div class="summary" style="background:#fffbeb;border-radius:12px;padding:6px;margin-top:6px;">
+
+<div class="summary-box" style="background:#fff7e0;">
+Total Cost
+<div id="totalCost">0</div>
+</div>
+
+<div class="summary-box" style="background:#fff7e0;">
+Net Margin
+<div id="totalMargin">0</div>
+</div>
+
+</div>
+
+<div class="button-group">
+
+<button class="btn btn-success" onclick="generateSlip()">
+Generate Slip
+</button>
+
+<button class="btn btn-primary" onclick="copySlip()">
+Copy Slip
+</button>
+
+<button class="btn btn-success" onclick="shareWhatsApp()">
+WhatsApp
+</button>
+
+<button class="btn btn-secondary" onclick="exportPDF()">
+Export PDF
+</button>
+
+<button class="btn btn-danger" onclick="resetForm()">
+Reset Form
+</button>
+
+<button class="btn btn-danger" onclick="clearAll()">
+Clear All
+</button>
+
+</div>
+
+</div>
+
+<div id="dashboardTab" style="display:none;">
+
+<div class="dashboard-controls">
+<div>
+<label>Filter by Customer</label>
+<select id="dashboardCustomerFilter">
+<option value="">All Customers</option>
+</select>
+</div>
+<div style="align-self:end;">
+<button class="btn btn-primary" onclick="loadRecordsFromSheet()">⟳ Refresh from Google Sheet</button>
+</div>
+</div>
+
+<div id="dashboardStatus" style="margin-bottom:12px;font-size:13px;color:var(--secondary);">
+Not loaded yet.
+</div>
+
+<div class="summary" style="margin-top:0;margin-bottom:15px;">
+<div class="summary-box">
+Records Shown
+<div id="dashboardCount">0</div>
+</div>
+<div class="summary-box">
+Total Final Settlement
+<div id="dashboardTotal">0</div>
+</div>
+<div class="summary-box" style="background:#fff7e0;">
+Total Net Margin
+<div id="dashboardMarginTotal">0</div>
+</div>
+</div>
+
+<div class="table-wrap">
+<table id="dashboardTable">
+<thead>
+<tr>
+<th>Date</th>
+<th>Slip ID</th>
+<th>Customer</th>
+<th>Mobile</th>
+<th>Total Txn</th>
+<th>Charges</th>
+<th>Bank Adj.</th>
+<th>Final Settlement</th>
+<th>Net Margin</th>
+<th>Transactions</th>
+</tr>
+</thead>
+<tbody id="dashboardBody"></tbody>
+</table>
+</div>
+
+</div>
+
+</div>
+
+<div class="card" id="outputCard">
+<h3>Generated Slip</h3>
+
+<div class="output" id="output">
+Generate a transaction slip to view output here...
+</div>
+
+<div id="saveStatus"></div>
+</div>
+
+</div>
+
+<script>
+
+const GOOGLE_SCRIPT_URL =
+"https://script.google.com/macros/s/AKfycbwj5wwv8tX_8psKb8GQhbyoj_IP6U3OrEUlbTE9rHFcz8077QdiR2nIbe9DIuhDqb09/exec";
+
+let serviceOptions=[1.9,2.3,2.5,3,5];
+let portalOptions=["PJ","PZ","PP","RI","BT","SM","IM","SE"];
+
+let allRecords=[];
+let customerDirectory={};
+
+function num(v){
+return parseFloat(String(v).replace(/,/g,''))||0;
+}
+
+function fmt(v){
+return Math.round(v).toLocaleString('en-IN');
+}
+
+function getDateTime(){
+
+const d=new Date();
+
+let dd=String(d.getDate()).padStart(2,'0');
+let mm=String(d.getMonth()+1).padStart(2,'0');
+let yy=d.getFullYear();
+
+let h=d.getHours();
+let ap=h>=12?'PM':'AM';
+h=h%12||12;
+
+let m=String(d.getMinutes()).padStart(2,'0');
+
+return `${dd}-${mm}-${yy} ${String(h).padStart(2,'0')}:${m} ${ap}`;
+}
+
+/* PART 2 STARTS HERE */
+
+function chargeOptionsHTML(selected){
+return serviceOptions.map(v=>`<option value="${v}"${String(v)===String(selected)?' selected':''}>${v}%</option>`).join('');
+}
+
+function portalOptionsHTML(selected){
+return `<option value="">Select</option>`+portalOptions.map(v=>`<option${v===selected?' selected':''}>${v}</option>`).join('');
+}
+
+function addRow(showDelete=true){
+
+let mobile=window.innerWidth<=768;
+
+if(mobile){
+
+const card=document.createElement("div");
+card.className="mobile-card";
+
+card.innerHTML=`
+<label>Amount *</label>
+<input class="amount" inputmode="numeric">
+
+<label>Service Charge</label>
+<select class="charge">
+${chargeOptionsHTML()}
+</select>
+
+<label>Cost % <span style="font-weight:400;color:var(--secondary);">(internal — margin analysis only)</span></label>
+<input class="costpct" inputmode="decimal" placeholder="e.g. 1.2">
+
+<label>Transaction ID *</label>
+<input class="txnid">
+
+<label>Portal *</label>
+<select class="portal">
+${portalOptionsHTML()}
+</select>
+
+${showDelete?'<button class="delete-btn">Delete</button>':''}
+`;
+
+document.getElementById("mobileContainer").appendChild(card);
+
+bindEvents(card);
+return;
+}
+
+const tr=document.createElement("tr");
+
+tr.innerHTML=`
+<td><input class="amount" inputmode="numeric"></td>
+
+<td>
+<select class="charge">
+${chargeOptionsHTML()}
+</select>
+</td>
+
+<td><input class="costpct" inputmode="decimal" placeholder="%" style="width:70px;"></td>
+
+<td><input class="txnid"></td>
+
+<td>
+<select class="portal">
+${portalOptionsHTML()}
+</select>
+</td>
+
+<td>
+${showDelete?'<button class="delete-btn">Delete</button>':''}
+</td>
+`;
+
+transactionBody.appendChild(tr);
+bindEvents(tr);
+}
+
+function refreshOptionsInDOM(){
+
+document.querySelectorAll(".charge").forEach(sel=>{
+const current=sel.value;
+sel.innerHTML=chargeOptionsHTML(current);
+});
+
+document.querySelectorAll(".portal").forEach(sel=>{
+const current=sel.value;
+sel.innerHTML=portalOptionsHTML(current);
+});
+}
+
+async function loadConfigFromSheet(){
+
+const status=document.getElementById('configStatus');
+
+if(!isSheetLinked()){
+if(status)status.textContent="Google Sheet not linked — using the built-in portal/charge list.";
+return;
+}
+
+if(status)status.textContent="Loading portal & charge list from sheet...";
+
+try{
+
+const sep=GOOGLE_SCRIPT_URL.includes('?')?'&':'?';
+const res=await fetch(GOOGLE_SCRIPT_URL+sep+'action=config');
+const data=await res.json();
+
+if(Array.isArray(data.portals)&&data.portals.length){
+portalOptions=data.portals.map(String).filter(v=>v.trim()!=='');
+}
+
+if(Array.isArray(data.charges)&&data.charges.length){
+serviceOptions=data.charges.map(Number).filter(v=>!isNaN(v));
+}
+
+refreshOptionsInDOM();
+
+if(status)status.textContent=`Loaded ${portalOptions.length} portal(s) and ${serviceOptions.length} charge rate(s) from your sheet's Config tab.`;
+
+}catch(e){
+
+console.log(e);
+if(status)status.textContent="Could not load Config tab — using the built-in portal/charge list.";
+
+}
+}
+
+async function loadCustomersFromSheet(){
+
+if(!isSheetLinked())return;
+
+try{
+
+const sep=GOOGLE_SCRIPT_URL.includes('?')?'&':'?';
+const res=await fetch(GOOGLE_SCRIPT_URL+sep+'action=customers');
+const data=await res.json();
+
+customerDirectory={};
+
+if(Array.isArray(data)){
+data.forEach(c=>{
+if(c && c.mobile){
+customerDirectory[String(c.mobile).trim()]=c.name||'';
+}
+});
+}
+
+}catch(e){
+console.log(e);
+}
+}
+
+function lookupCustomer(mobile){
+
+const note=document.getElementById('customerLookupNote');
+if(!note)return;
+
+if(mobile.length!==10){
+note.textContent='';
+return;
+}
+
+const match=customerDirectory[mobile];
+
+if(match){
+if(!customerName.value.trim()){
+customerName.value=match;
+}
+note.textContent=`✓ Existing customer: ${match}`;
+note.style.color='var(--success)';
+}else{
+note.textContent=isSheetLinked()
+?'New customer — name will be saved for next time.'
+:'';
+note.style.color='var(--secondary)';
+}
+}
+
+customerMobile.addEventListener('input',function(){
+const raw=this.value.replace(/\D/g,'').slice(0,10);
+this.value=raw;
+lookupCustomer(raw);
+});
+
+function bindEvents(el){
+
+const amt=el.querySelector(".amount");
+
+amt.addEventListener("input",function(){
+
+let raw=this.value.replace(/,/g,'').replace(/[^\d]/g,'');
+
+this.value=raw?Number(raw).toLocaleString("en-IN"):'';
+
+updateTotals();
+});
+
+el.querySelector(".charge")
+.addEventListener("change",updateTotals);
+
+const cost=el.querySelector(".costpct");
+
+if(cost){
+cost.addEventListener("input",function(){
+this.value=this.value.replace(/[^\d.]/g,'');
+updateTotals();
+});
+}
+
+const d=el.querySelector(".delete-btn");
+
+if(d){
+d.onclick=()=>{
+el.remove();
+updateTotals();
+};
+}
+}
+
+function addMultipleRows(){
+
+const count=parseInt(lineCount.value);
+
+for(let i=0;i<count;i++){
+addRow(true);
+}
+}
+
+function updateTotals(){
+
+let txn=0;
+let sc=0;
+let settle=0;
+let costTotal=0;
+
+document.querySelectorAll(".amount").forEach((a,index)=>{
+
+const amt=num(a.value);
+
+const chargePct=
+parseFloat(document.querySelectorAll(".charge")[index].value)||0;
+
+const costPct=
+parseFloat((document.querySelectorAll(".costpct")[index]||{}).value)||0;
+
+const charge=(amt*chargePct)/100;
+const cost=(amt*costPct)/100;
+
+txn+=amt;
+sc+=charge;
+settle+=(amt-charge);
+costTotal+=cost;
+
+});
+
+const bank=num(bankTransfer.value);
+const adj=(document.getElementById('adjustmentType')||{}).value||'bank';
+
+totalTxn.textContent=fmt(txn);
+totalSC.textContent=fmt(sc);
+totalSettlement.textContent=fmt(settle);
+finalSettlement.textContent=
+fmt(adj==='discount'?settle+bank:settle-bank);
+
+const totalCostEl=document.getElementById('totalCost');
+const totalMarginEl=document.getElementById('totalMargin');
+
+if(totalCostEl)totalCostEl.textContent=fmt(costTotal);
+if(totalMarginEl)totalMarginEl.textContent=fmt(sc-costTotal);
+}
+
+function isSheetLinked(){
+return !GOOGLE_SCRIPT_URL.includes("YOUR_DEPLOYMENT_ID");
+}
+
+async function saveToGoogleSheet(data){
+
+if(!isSheetLinked())return false;
+
+try{
+
+await fetch(GOOGLE_SCRIPT_URL,{
+method:"POST",
+headers:{
+"Content-Type":"text/plain;charset=utf-8"
+},
+body:JSON.stringify(data)
+});
+
+return true;
+
+}catch(e){
+console.log(e);
+return false;
+}
+}
+
+async function generateSlip(){
+
+let customer=customerName.value.trim();
+let mobile=(customerMobile.value||'').replace(/\D/g,'');
+
+customerName.classList.remove("error");
+customerMobile.classList.remove("error");
+
+if(!customer){customerName.classList.add("error");alert("Customer Name Required");return;}
+if(mobile.length!==10){customerMobile.classList.add("error");alert("Enter valid 10-digit mobile number");return;}
+
+let rows=[];
+document.querySelectorAll(".amount").forEach((v,i)=>{
+ rows.push({
+  amount:v,
+  charge:document.querySelectorAll(".charge")[i],
+  costpct:document.querySelectorAll(".costpct")[i],
+  txnid:document.querySelectorAll(".txnid")[i],
+  portal:document.querySelectorAll(".portal")[i]
+ });
+});
+
+let totalTxnVal=0,totalChargeVal=0,totalSettleVal=0,totalCostVal=0,totalMarginVal=0;
+let txnLines=[],txnIds=[],lineItems=[];
+
+for(const r of rows){
+ if(!num(r.amount.value)||!r.txnid.value.trim()||!r.portal.value){alert("Fill all required fields.");return;}
+ let amt=num(r.amount.value);
+ let pct=parseFloat(r.charge.value)||0;
+ let costPct=parseFloat((r.costpct||{}).value)||0;
+ let charge=(amt*pct)/100;
+ let cost=(amt*costPct)/100;
+ let margin=charge-cost;
+ let settle=amt-charge;
+ totalTxnVal+=amt;
+ totalChargeVal+=charge;
+ totalSettleVal+=settle;
+ totalCostVal+=cost;
+ totalMarginVal+=margin;
+ txnLines.push(`${pct.toFixed(2)}% | ${fmt(amt)}-${fmt(charge)}=${fmt(settle)}`);
+ txnIds.push(`CC ${fmt(amt)}-${r.portal.value}-${r.txnid.value}`);
+ lineItems.push({portal:r.portal.value,txnid:r.txnid.value.trim(),amount:amt,chargePct:pct,chargeAmt:charge,costPct:costPct,costAmt:cost,margin:margin,settleAmt:settle});
+}
+
+let bank=num(bankTransfer.value);
+const adjType=document.getElementById('adjustmentType').value;
+let finalSettlementVal=(adjType==='discount')?(totalSettleVal+bank):(totalSettleVal-bank);
+const slipId='D2S-'+Date.now();
+
+let outputText=`D2Square Transaction Slip\n`;
+outputText+=`${getDateTime().replace(' ', ' | ')}\n`;
+outputText+=`${slipId}\n\n`;
+outputText+=`${customer}\n${mobile}\n\n`;
+outputText+=txnLines.join("\n");
+outputText+=`\n\n${adjType==='discount'?'Discount':adjType==='advance'?'Advance Bill Payment':'Bank Transfer'}: ${fmt(bank)}\n`;
+outputText+=`Settlement: ${fmt(totalTxnVal)}-${fmt(totalChargeVal)}${adjType==='discount'?'+':'-'}${fmt(bank)}=${fmt(finalSettlementVal)}\n\n`;
+outputText+=`TXN:\n${txnIds.join("\n")}`;
+output.textContent=outputText;
+
+const saveStatusEl=document.getElementById('saveStatus');
+
+if(!isSheetLinked()){
+saveStatusEl.textContent="⚠ Google Sheet not linked yet — this slip was NOT saved to the cloud. See setup notes at the top of the script.";
+saveStatusEl.className="status-warn";
+}else{
+saveStatusEl.textContent="Saving to Google Sheet...";
+saveStatusEl.className="";
+const ok=await saveToGoogleSheet({date:getDateTime(),slipId,customer,mobile,totalTxnVal,totalChargeVal,totalSettleVal,bank,finalSettlementVal,adjustmentType:adjType,transactions:txnIds.join(" | "),totalCostVal,totalMarginVal,lines:lineItems});
+saveStatusEl.textContent=ok?"✓ Saved to Google Sheet.":"✗ Could not reach the Google Sheet. Check your internet connection or the deployment URL.";
+saveStatusEl.className=ok?"status-ok":"status-err";
+if(ok){
+customerDirectory[mobile]=customer;
+}
+}
+
+updateTotals();
+}
+
+function copySlip(){
+
+const txt=output.textContent.trim();
+const mobile=(window.customerMobile?customerMobile.value:'').replace(/\D/g,'');
+
+if(!txt){
+alert("Generate slip first");
+return;
+}
+
+navigator.clipboard.writeText(txt);
+
+alert("Copied Successfully");
+}
+
+function shareWhatsApp(){
+
+const txt=output.textContent.trim();
+const mobile=(document.getElementById('customerMobile')?.value||'').replace(/\D/g,'');
+
+if(!txt){
+alert("Generate slip first");
+return;
+}
+
+const url=(mobile.length===10
+?'https://wa.me/91'+mobile+'?text='
+:'https://wa.me/?text=');
+
+window.open(url+encodeURIComponent(txt),'_blank');
+}
+
+function exportPDF(){
+
+const slip=output.textContent.trim();
+
+if(!slip){
+alert("Generate slip first");
+return;
+}
+
+const w=window.open("","_blank");
+
+w.document.write(`
+<html>
+<head>
+<title>D2Square Slip</title>
+<style>
+@page{
+size:A4;
+margin:12mm;
+}
+body{
+font-family:Arial;
+padding:20px;
+}
+.box{
+border:1px solid #ddd;
+padding:20px;
+border-radius:10px;
+white-space:pre-wrap;
+line-height:1.7;
+}
+</style>
+</head>
+<body>
+<div class="box">${slip.replace(/\n/g,'<br>')}</div>
+<script>
+window.onload=function(){
+setTimeout(function(){
+window.print();
+},500);
+}
+<\/script>
+</body>
+</html>
+`);
+
+w.document.close();
+}
+
+function resetForm(){
+
+transactionBody.innerHTML='';
+mobileContainer.innerHTML='';
+
+customerName.value='';
+customerMobile.value='';
+bankTransfer.value='';
+
+document.getElementById('customerLookupNote').textContent='';
+
+output.textContent=
+'Generate a transaction slip to view output here...';
+
+document.getElementById('saveStatus').textContent='';
+
+addRow(false);
+
+updateTotals();
+}
+
+function clearAll(){
+
+if(confirm("Clear all records?")){
+resetForm();
+}
+}
+
+/* ===================== TABS ===================== */
+
+function showTab(tab){
+
+const createTab=document.getElementById('createTab');
+const dashboardTab=document.getElementById('dashboardTab');
+const createBtn=document.getElementById('tabCreateBtn');
+const dashboardBtn=document.getElementById('tabDashboardBtn');
+
+if(tab==='dashboard'){
+createTab.style.display='none';
+dashboardTab.style.display='';
+createBtn.classList.remove('active');
+dashboardBtn.classList.add('active');
+if(allRecords.length===0){
+loadRecordsFromSheet();
+}
+}else{
+createTab.style.display='';
+dashboardTab.style.display='none';
+dashboardBtn.classList.remove('active');
+createBtn.classList.add('active');
+}
+}
+
+/* ===================== DASHBOARD ===================== */
+
+async function loadRecordsFromSheet(){
+
+const status=document.getElementById('dashboardStatus');
+
+if(!isSheetLinked()){
+status.textContent="Google Sheet not linked yet. Add your Apps Script Web App URL to GOOGLE_SCRIPT_URL at the top of the script, then refresh.";
+status.style.color="#b45309";
+return;
+}
+
+status.textContent="Loading records...";
+status.style.color="var(--secondary)";
+
+try{
+
+const res=await fetch(GOOGLE_SCRIPT_URL,{method:"GET"});
+const data=await res.json();
+
+allRecords=Array.isArray(data)?data:[];
+
+const filterSelect=document.getElementById('dashboardCustomerFilter');
+const previousValue=filterSelect.value;
+filterSelect.innerHTML='<option value="">All Customers</option>';
+
+const seen=new Set();
+
+allRecords.forEach(r=>{
+const key=`${r.customer} - ${r.mobile}`;
+if(r.customer && !seen.has(key)){
+seen.add(key);
+const opt=document.createElement('option');
+opt.value=key;
+opt.textContent=key;
+filterSelect.appendChild(opt);
+}
+});
+
+if([...seen].includes(previousValue)){
+filterSelect.value=previousValue;
+}
+
+renderDashboard(filterSelect.value);
+
+status.textContent=`Loaded ${allRecords.length} record(s) from Google Sheet.`;
+status.style.color="var(--success)";
+
+}catch(e){
+
+console.log(e);
+status.textContent="Could not load records. Check the Apps Script deployment (Who has access: Anyone) and the URL.";
+status.style.color="var(--danger)";
+
+}
+}
+
+function renderDashboard(filterKey){
+
+const tbody=document.getElementById('dashboardBody');
+tbody.innerHTML='';
+
+let filtered=allRecords;
+
+if(filterKey){
+filtered=allRecords.filter(r=>`${r.customer} - ${r.mobile}`===filterKey);
+}
+
+filtered.forEach(r=>{
+const tr=document.createElement('tr');
+tr.innerHTML=`
+<td>${r.date||''}</td>
+<td>${r.slipId||''}</td>
+<td>${r.customer||''}</td>
+<td>${r.mobile||''}</td>
+<td>${fmt(num(r.totalTxnVal))}</td>
+<td>${fmt(num(r.totalChargeVal))}</td>
+<td>${fmt(num(r.bank))}</td>
+<td>${fmt(num(r.finalSettlementVal))}</td>
+<td>${fmt(num(r.totalMarginVal))}</td>
+<td>${r.transactions||''}</td>
+`;
+tbody.appendChild(tr);
+});
+
+document.getElementById('dashboardCount').textContent=filtered.length;
+
+const sumFinal=filtered.reduce((s,r)=>s+num(r.finalSettlementVal),0);
+document.getElementById('dashboardTotal').textContent=fmt(sumFinal);
+
+const sumMargin=filtered.reduce((s,r)=>s+num(r.totalMarginVal),0);
+document.getElementById('dashboardMarginTotal').textContent=fmt(sumMargin);
+}
+
+document.getElementById('dashboardCustomerFilter').addEventListener('change',function(){
+renderDashboard(this.value);
+});
+
+document.addEventListener('change',e=>{if(e.target.id==='adjustmentType')updateTotals();});
+
+bankTransfer.addEventListener("input",function(){
+
+let raw=this.value.replace(/,/g,'').replace(/[^\d]/g,'');
+
+this.value=
+raw?Number(raw).toLocaleString('en-IN'):'';
+
+updateTotals();
+
+});
+
+(async function init(){
+await Promise.all([loadConfigFromSheet(),loadCustomersFromSheet()]);
+addRow(false);
+updateTotals();
+})();
+
+</script>
+
+</body>
+</html>
